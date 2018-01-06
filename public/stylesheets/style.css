@@ -1,0 +1,69 @@
+@import url(https://fonts.googleapis.com/css?family=Montserrat:400,500,700,300,100);
+
+div.portfolio_summary {
+  width: 90%;
+  max-width: 1200px;
+  background-color: white;
+  padding: 10px;
+  box-shadow: 4px 4px gray;
+}
+
+div.portfolio_charts {
+  width: 90%;
+  max-width: 1200px;
+  background-color: white;
+  padding: 10px;
+  box-shadow: 4px 4px gray;
+}
+
+div#content {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+}
+
+div#content > table {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+img.coin {
+  height: 30px;
+  width: 30px;
+}
+
+body {
+  background-color: deepskyblue;
+  font-family: "Montserrat", helvetica, arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+}
+
+.pf-table {
+  width: 60%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+div.search {
+  width: 60%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+input#search.searching {
+  background-image: url("/images/searching.gif");
+  background-repeat: no-repeat;
+  background-position: right;
+}
+
+div.chart {
+  position: absolute;
+  left: 200px;
+  right: 10px;
+  top: 150px;
+  bottom: 10px;
+}

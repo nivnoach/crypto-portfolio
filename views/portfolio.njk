@@ -1,0 +1,119 @@
+{% extends "./_layout.njk" %}
+
+{% block head %}
+
+  <script src="/javascripts/dygraph.js"></script>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/dygraph.css" />
+
+  <script>
+    $(function(){
+        var history = new Dygraph(document.getElementById("history"),
+                    [ {{ history | historyData | join(',') }} ],
+                    {
+                      labels: [ "", "$" ],
+                      showRangeSelector: true,
+                      title: "Portfolio Value (USD)",
+                      digitsAfterDecimal: 2,
+                      drawGrid: true,
+                      animatedZooms: true,
+                      legend: "always"
+                    });
+
+      // annotate with purchases
+      var annotations = [];
+      {% for t in transactions %}
+        annotations.push( {
+          series: '$',
+          x: new Date({{ t.date.getTime() }}),
+          icon: 'images/trash.png',
+          width: 18,
+          height: 23,
+          tickHeight: 4,
+          text: "{{ t.coin_info.name }}<br/>{{ t.amount }}<br/>{{ t.price_usd }}",
+          cssClass: 'annotation'
+        });                    
+      {% endfor %}
+      history.setAnnotations(annotations);
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container portfolio_summary">
+      <div class="row">
+        <div class="col-sm-12">
+          <h2>${{ portfolio.current_value | round(2) }}</h2>
+          current portfolio value
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-4">
+          <h3>${{ portfolio.total_cost | round(2) }}</h3>
+          total cost
+        </div>
+        <div class="col-sm-4">
+          <h3>${{ portfolio.total_profit | round(2) }}</h3>
+          total profit
+        </div>
+        <div class="col-sm-4">
+          <h3>{{ portfolio.total_profit_percent | round(2) }}%</h3>
+          total profit
+        </div>
+      </div>
+    </div>
+
+    <br/> 
+
+    <div class="container portfolio_charts">
+      <div class="row">
+        <div class="col-sm-6">
+          <!-- <canvas id="history"></canvas> -->
+          <div id="history" style="width: 100%"></div>
+        </div>
+        <div class="col-sm-6">
+          <!-- <canvas id="history"></canvas> -->
+          <div id="division" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <br/>
+
+    <div class="table-responsive" style="margin: 0 auto;">
+      <table id="coins" class="table table-hover pf-table">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col" colspan="2">Coin</th>
+            <th scope="col">Price</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Abg. Buy Price</th>
+            <th scope="col">Cost</th>
+            <th scope="col">Value</th>
+            <th scope="col">Profit</th>
+            <th scope="col">Profit %</th>
+          </tr>
+        </thead>
+        <tbody id="coins">
+      {% for coin in portfolio.coins %}
+
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><img class='coin' src='{{ coin.info.image_link }}' /></td>
+          <td>{{ coin.info.name }} ({{coin.info.symbol}})</td>
+          <td>${{ coin.info.price_usd }}</td>
+          <td>{{ coin.amount }}</td>
+          <td>${{ coin.avg_buy_price }}</td>
+          <td>${{ coin.cost | round(2)}}</td>
+          <td>${{ coin.value | round(2) }}</td>
+          <td>${{ coin.profit | round(2) }}</td>
+          <td>{{ coin.profit_percent | round(2) }}%</td>
+        </tr>
+
+      {% endfor %}
+        </tbody>
+    </table>
+  </div>
+  <br/><br/>
+{% endblock %}

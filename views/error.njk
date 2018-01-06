@@ -1,0 +1,12 @@
+{% extends "./_layout.njk" %}
+
+{% block head %}{% endblock %}
+
+{% block content %}
+    {{ error.stack }}
+    <br />
+    {{ error.status }}
+    <br/>
+    {{ message }}
+{% endblock %}
+

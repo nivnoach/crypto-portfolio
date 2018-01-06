@@ -1,0 +1,171 @@
+{% extends "./_layout.njk" %}
+
+{% block head %}
+  <style>
+    .add_transaction_btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+    }
+
+    .trash {
+      cursor: pointer;
+    }
+
+    .trash > img {
+      height: 30px;
+      width:30px;
+    }
+  </style>
+  <script>
+    var transaction_to_delete = null;
+    function delete_transaction(t_id) {
+      $.ajax('/data/transactions/' + t_id, {
+        method: 'DELETE',
+        success: function() { location.reload(); },
+        error: function() { alert('failed to delete transaction'); }
+      });
+    }
+
+    function serializeForm(form) {
+      return {
+        coin: $("#coin").val(),
+        action: $("#action").val(),
+        date: $("#when").val(),
+        price_usd: $("#price").val(),
+        amount: $("#amount").val()
+      }
+    }
+
+    function send_transaction() {
+      $.ajax("/data/transactions", {
+        method: "POST",
+        data: JSON.stringify(serializeForm()),
+        contentType: 'application/json',
+        success: function() {
+          console.log("successfully noted transation");
+          location.reload();
+        },
+        error: function(err) {
+          console.log("failed to add transation");
+        }
+      });
+    }
+  </script>
+{% endblock %}
+
+{% block content %}
+    <div class="table-responsive" style="margin: 0 auto;">
+      <table class="table table-hover pf-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col">Coin</th>
+            <th scope="col">Date</th>
+            <th scope="col">Action</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Unit Price</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+      {% for transaction in transactions | reverse %}
+          <tr>
+            <td>{{ transactions.length - loop.index + 1 }}</td>
+            <td><img class='coin' src='{{ transaction.coin_info.image_link }}' /></td>
+            <td>{{ transaction.coin_info.name }} ({{transaction.coin_info.symbol}})</td>
+            <td>{{ transaction.date | fmtdate() }}</td>
+            <td>{{ transaction.action }}</td>
+            <td>{{ transaction.amount }}</td>
+            <td>{{ transaction.price_usd }}</td>
+            <td>
+              <span class='trash' onclick='transaction_to_delete = {{ transaction.t_id }}'>
+                <button type="button" class="btn btn-default trash" data-toggle="modal" data-target="#deleteModal">
+                  <img src='images/trash.png' />
+                </button>
+              </span>
+            </td>
+          </tr>
+      {% endfor %}
+        </tbody>
+    </table>
+  </div>
+  <!-- add button -->
+  <button type="button" class="btn-lg btn-danger add_transaction_btn" data-toggle="modal" data-target="#addModal">
+    +
+  </button>
+
+  <!-- delete modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="deleteModalLabel">Delete Transaction</h3>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this transaction?<br/><br/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="delete_transaction(transaction_to_delete)">Delete</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>  
+
+  <!-- add modal -->
+  <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="addModalLabel">Add Transaction</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="new_transaction">
+            <div class="form-group">
+              <label for="coin">Coin:</label>
+              <input type="text" class="form-control" id="coin">
+            </div>
+
+            <div class="form-group">
+              <label for="action">Action:</label>
+              <select class="form-control" id="action" disabled>
+                <option value="buy" selected>Buy</option>
+                <option value="buy">Sell</option>
+                <option value="buy">Exchange</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="when">When:</label>
+              <input type="date" class="form-control" id="when">
+            </div>
+
+            <div class="form-group">
+              <label for="price">Price (USD):</label>
+              <input type="number" class="form-control" id="price">
+            </div>
+
+            <div class="form-group">
+              <label for="amount">Amount:</label>
+              <input type="number" class="form-control" id="amount">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="send_transaction()">Save Transaction</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>  
+  
+{% endblock %}
