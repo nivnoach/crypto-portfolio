@@ -3,7 +3,7 @@
 <html>
   {% block head %}
     <script>
-      var fields = [ /*icon*/ "name", "symbol", "price_usd", "market_cap_usd" ];
+      var fields = [ /*icon*/ "name", "symbol", "price_usd", "market_cap_usd", "id" ];
       const batch_size = 50;
       var last = 0;
       var lookupRequest = null;
@@ -116,6 +116,7 @@
           <th>Symbol</th>
           <th>Price ($)</th>
           <th>Market Cap ($)</th>
+          <th>ID</th>
         </tr>
       </thead>
       <tbody id="coins">

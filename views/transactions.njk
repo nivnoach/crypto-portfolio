@@ -14,9 +14,51 @@
 
     .trash > img {
       height: 30px;
-      width:30px;
+      width: 30px;
     }
+
+    span.twitter-typeahead {
+      width: 100%;
+    }
+
+    .suggestion > img {
+      height: 20px;
+      width: 20px;
+    }
+
+    .tt-input {
+      width: 100%;
+    }
+
+    .tt-cursor {
+      background-color: #d3d3d3;
+    }
+
+    .tt-highlight {
+      background-color: #d3d3d3;
+    }
+
+    .tt-suggestion {
+      padding: 10px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .tt-suggestion:hover {
+      background-color: #d3d3d3;
+    }
+
+    .tt-menu {
+      background-color: white;
+      border: 1px solid gray;
+      width: 100%;
+    }
+
+
   </style>
+
+  <script src="/javascripts/typeahead.js"></script>
+  <script src="/javascripts/handlebars-v4.0.11.js"></script>
   <script>
     var transaction_to_delete = null;
     function delete_transaction(t_id) {
@@ -51,6 +93,40 @@
         }
       });
     }
+
+    function get_coins(query, cb) {
+      $.ajax("/data/coins?filter=" + query, {
+          dataType:"json",
+          success: cb,
+          error: function(err) {
+              console.log("error getting more coins' data: " + err);
+              cb([]);
+          }
+      });
+    }
+
+    $(function() {
+       // initialize typeahead 
+        $("input#coin").typeahead({
+          highlight: true,
+          hint: true,
+          minLength: 3
+        }, [{
+          source: function(query, syncResults, asyncResults) {
+            syncResults([]);
+            get_coins(query, asyncResults);
+          },
+          async: true,
+          name: 'portfolio-internal',
+          limit: 15,
+          display: function(s) { return s.id},
+          templates: {
+            notFound: 'Not results found',
+            pending: '...',
+            suggestion: Handlebars.compile({{ "\"<div class='suggestion'><img src='{{image_link}}'/> {{name}} ({{id}})<div>\"" | safe }})
+          }
+        }]);
+    });
   </script>
 {% endblock %}
 

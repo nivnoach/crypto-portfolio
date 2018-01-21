@@ -71,10 +71,10 @@ env.express(app);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'njk');
 
-const isDev = app.get('env') === 'development';
+global.isDev = app.get('env') === 'development';
 const njk = expressNunjucks(app, {
-  watch: isDev,
-  noCache: isDev
+  watch: global.isDev,
+  noCache: global.isDev
 });
 
 // uncomment after placing your favicon in /public
