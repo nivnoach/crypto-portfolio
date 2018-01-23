@@ -6,6 +6,10 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const nunjucks = require('nunjucks');
 
+// is dev?
+global.isDev = !(process.env.env === 'production');
+console.log("environment: " + process.env.env + " ,is dev? " + global.isDve)
+
 // add nunjucks filter
 var env = new nunjucks.Environment();
 
@@ -71,7 +75,6 @@ env.express(app);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'njk');
 
-global.isDev = app.get('env') === 'development';
 const njk = expressNunjucks(app, {
   watch: global.isDev,
   noCache: global.isDev

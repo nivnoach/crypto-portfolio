@@ -2,16 +2,16 @@ var mysql = require('mysql');
 const os = require('os');
 
 // config (TODO: move to file)
-var pool = mysql.createPool({
+var dbcfg = {
     poolSize: 4,
     host:     'localhost',
     user:     'root',
     password: 'portfolio',
     database: 'portfolio'
-});
+};
 
+var pool = mysql.createPool(dbcfg);
 var coinsmarketcap = require('./coinmarketcap');
-
 var that = module.exports = {
         history: {
             add_entry: function(cb) {
