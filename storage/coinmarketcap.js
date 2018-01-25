@@ -19,10 +19,14 @@ var self = module.exports = {
     // array of coins
     _data: _cached_data,
 
+    name: function() {
+        return "coinmarketcap.com";
+    },
+
     // returns 
     get: function(start, limit) {
         start = +start ? +start : 0;
-        limit = +limit ? +limit : 9999;
+        limit = +limit ? +limit : this._data.length;
         var result = {
             last_update: this._last_updated,
             coins: this._data.slice(start, start + limit),

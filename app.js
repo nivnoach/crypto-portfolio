@@ -55,8 +55,10 @@ const expressNunjucks = require('express-nunjucks');
 var index = require('./routes/index');
 var data = require('./routes/data');
 
-// database
-global.storage = require('./storage/mysql'); // load file-based storage
+// data sources and database
+// NOT: mysql depends on coinmarketcap, so must be loaded after it.
+global.coin_data_source = require('./storage/coinmarketcap');
+global.storage = require('./storage/mysql');
 
 // create the app
 var app = express();
@@ -116,9 +118,13 @@ const history_entry_timer = setInterval(function() {
     if (err) {
       return;
     }
-    console.log("saved history entry to database");
+    console.log("saved portfolio history entry to database");
   });
   
 }, 60000);
+
+// start task to periodically update coins history
+global.storage.coins.persist();
+const coins_history_timer = setInterval(global.storage.coins.persist, 5 * 60000);
 
 module.exports = app;

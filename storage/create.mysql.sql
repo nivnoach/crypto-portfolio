@@ -25,6 +25,30 @@ CREATE TABLE IF NOT EXISTS profile_history(
     PRIMARY KEY (h_id)
 );
 
+
+CREATE TABLE IF NOT EXISTS coins_history(
+    ID int NOT NULL AUTO_INCREMENT,
+	cid varchar(16),
+    name varchar(32),
+    symbol varchar(16),
+    rank int,
+    price_usd double,
+    private_btc double,
+    vol_usd_24h double,
+    market_cap_usd double,
+    available_supply double,
+    
+    total_supply double,
+    max_supply double,
+    percent_change_1h double,
+    percent_change_24h double,
+    percent_change_7d double,
+    last_updated long,
+    
+    source varchar(20),
+    primary key (id)
+);
+
 /*
 TRUNCATE TABLE transactions;
 

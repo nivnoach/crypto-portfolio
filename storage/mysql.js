@@ -1,7 +1,13 @@
-var mysql = require('mysql');
+
 const os = require('os');
 
-// config (TODO: move to file)
+//
+// Configuration (TODO: move to file)
+//
+
+/////////////// node.js mysql module
+var mysql = require('mysql');
+
 var dbcfg = {
     poolSize: 4,
     host:     'localhost',
@@ -11,7 +17,81 @@ var dbcfg = {
 };
 
 var pool = mysql.createPool(dbcfg);
-var coinsmarketcap = require('./coinmarketcap');
+
+////////////// sequalize
+const Sequelize = require('sequelize');
+const sequelize = new Sequelize('portfolio', 'root', 'portfolio', {
+  host: 'localhost',
+  dialect: 'mysql',
+
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+
+  // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
+  operatorsAliases: false
+});
+
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+  });
+
+const CoinSampling = sequelize.define('coin_samplings', {
+        id:            { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+        cid:           { type: Sequelize.STRING },
+        name:          { type: Sequelize.STRING },
+        symbol:        { type: Sequelize.STRING },
+        rank:          { type: Sequelize.INTEGER },
+        price_usd:     { type: Sequelize.DOUBLE },
+        price_btc:     { type: Sequelize.DOUBLE },
+        vol_usd_24h:   { type: Sequelize.DOUBLE },
+        market_cap_usd:       { type: Sequelize.DOUBLE },
+        avialability_supply:  { type: Sequelize.DOUBLE },
+        total_supply:         { type: Sequelize.DOUBLE },
+        max_supply:           { type: Sequelize.DOUBLE },
+        percent_change_1h:    { type: Sequelize.DOUBLE },
+        percent_change_24h:   { type: Sequelize.DOUBLE },
+        percent_change_7d:    { type: Sequelize.DOUBLE },
+        last_updated:         { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
+    }
+);
+
+// force: true will drop the table if it already exists
+/*
+CoinSampling.sync().then(() => {
+    // Table created
+    return CoinSampling.create(    {
+        cid: "bitcoin",  // was: id
+        name: "Bitcoin", 
+        symbol: "BTC", 
+        rank: 1, 
+        price_usd: 11318.3, 
+        price_btc: 1.0, 
+        volume_usd_24י: 9691290000.0,
+        market_cap_usd: 190421478680, 
+        available_supply: 16824212.0, 
+        total_supply: 16824212.0, 
+        max_supply: 21000000.0, 
+        percent_change_1h: 0.37, 
+        percent_change_24h: 1.73, 
+        percent_change_7d: 3.74, 
+        last_updated: 1516830860
+    });
+  });
+*/
+
+// fetch coins data source
+var coinsmarketcap = global.coin_data_source;
+
+// interface implementation
 var that = module.exports = {
         history: {
             add_entry: function(cb) {
@@ -49,31 +129,50 @@ var that = module.exports = {
             }
         },
 
-        coins: function(filter, start, limit, cb) {
-            if (!cb) return;
-            
-            // get all coins' data from cache
-            var market_info = coinsmarketcap.get(+start, +limit);
-            if (!filter) {
-                return cb(null, market_info.coins);
-            }
+        coins: {
+            get: function(filter, start, limit, cb) {
+                if (!cb) return;
+                
+                // get all coins' data from cache
+                var market_info = coinsmarketcap.get(+start, +limit);
+                if (!filter) {
+                    return cb(null, market_info.coins);
+                }
 
-            // filter
-            var result = [];
-            filter = filter.toLowerCase();
-            for(var coin_idx in market_info.coins) {
-                var coin = market_info.coins[coin_idx];
-                if ((coin.id.toLowerCase().indexOf(filter) !== -1) ||
-                    (coin.symbol.toLowerCase().indexOf(filter) !== -1) ||
-                    (coin.name.toLowerCase().indexOf(filter) !== -1))
-                {
-                    result.push(coin);
-                    if (result.length == limit) {
-                        break;
+                // filter
+                var result = [];
+                filter = filter.toLowerCase();
+                for(var coin_idx in market_info.coins) {
+                    var coin = market_info.coins[coin_idx];
+                    if ((coin.id.toLowerCase().indexOf(filter) !== -1) ||
+                        (coin.symbol.toLowerCase().indexOf(filter) !== -1) ||
+                        (coin.name.toLowerCase().indexOf(filter) !== -1))
+                    {
+                        result.push(coin);
+                        if (result.length == limit) {
+                            break;
+                        }
                     }
                 }
+                cb(null, result);
+            },
+
+            persist: function(coins_data) {
+                if (!coins_data) {
+                    coins_data = coinsmarketcap.get();
+                }
+        
+                console.log("persisting coin info...");
+                coins_data.coins.forEach(function(coin_sampling, index) {
+                    CoinSampling.sync().then(() => {
+                        coin_sampling.cid = coin_sampling.id;
+                        coin_sampling.last_updated = new Date();
+                        delete coin_sampling.id;
+                        console.log("created coin sampling #" + index + " of " + coins_data.coins.length);
+                        return CoinSampling.create( coin_sampling );
+                    });
+                });
             }
-            cb(null, result);
         },
 
         transactions: {

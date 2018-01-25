@@ -5,7 +5,7 @@ var router = express.Router();
 
 /* */
 router.get('/coins', function(req, res, next) {
-  global.storage.coins(req.query.filter, req.query.start, req.query.limit, function(err, coins) {
+  global.storage.coins.get(req.query.filter, req.query.start, req.query.limit, function(err, coins) {
     if(err) {
       console.log("error reading coins from storage: " + err);
       return res.status(500).send(err);
