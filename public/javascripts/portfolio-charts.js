@@ -42,7 +42,15 @@ function randomizeColors(coins) {
     });
 }
 
-function create_pf_distribution(coins, percents) {
+function create_pf_distribution(coins, values) {
+
+    // calculate the sum of all portfolio
+    var total = 0;
+    for (var i = 0; i < values.length; i++) { total += values[i]; }
+
+    // convert to %
+    percents = values.map(function(v) { return Math.floor(10000 * v / total) / 100; })
+
     // For a pie chart
     return new Chart(document.getElementById("distribution"), {
         type: 'pie', /* 'doughnut' */
@@ -53,7 +61,7 @@ function create_pf_distribution(coins, percents) {
         options: {
             title: {
                 display: true,
-                text: 'Portfolio by Value'
+                text: 'Portfolio Value Distribution'
             },
             legend: {
                 display: false,

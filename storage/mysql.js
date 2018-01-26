@@ -5,12 +5,14 @@ const os = require('os');
 // Configuration (TODO: move to file)
 //
 
+var mysql_host = "localhost";
+
 /////////////// node.js mysql module
 var mysql = require('mysql');
 
 var dbcfg = {
     poolSize: 4,
-    host:     'localhost',
+    host:     mysql_host,
     user:     'root',
     password: 'portfolio',
     database: 'portfolio'
@@ -21,7 +23,7 @@ var pool = mysql.createPool(dbcfg);
 ////////////// sequalize
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('portfolio', 'root', 'portfolio', {
-  host: 'localhost',
+  host: mysql_host,
   dialect: 'mysql',
 
   pool: {
