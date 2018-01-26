@@ -14,12 +14,31 @@ console.log("environment: " + process.env.env + " ,is dev? " + global.isDve)
 var env = new nunjucks.Environment();
 
 env.addFilter('fmtdate', function(value) {
+  var m = { 0: "Jan", 1: "Feb", 2: "Mar", 3: "Apr", 4: "May", 5: "Jun", 6: "Jul", 7: "Aug", 8: "Sep", 9: "Oct", 10: "Nov", 11: "Dec"  };
   var d = new Date(value);
-  return d.getDate() + "-" + d.getMonth() + "-" + d.getUTCFullYear();
+
+  var month = m[d.getMonth()] ? m[d.getMonth()] : (d.getMonth() + 1);
+  return d.getDate() + "-" + (month) + "-" + d.getUTCFullYear();
 });
 
 env.addFilter('round', function(value, decimals) {
   return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+});
+
+env.addFilter('transaction_coin_name', function(value) {
+  if (!Array.isArray(value)) {
+    throw new Error("value must be an array");
+  }
+
+  return value.map(function(t) { return '"' + t.coin_info.name + '"'; });
+});
+
+env.addFilter('transaction_value', function(value) {
+  if (!Array.isArray(value)) {
+    throw new Error("value must be an array");
+  }
+
+  return value.map(function(t) { return t.amount * t.price_usd; });
 });
 
 env.addFilter('historyData', function(history) {
@@ -113,15 +132,17 @@ app.use(function(err, req, res, next) {
 });
 
 // start task to periodically save portfolio history point
-const history_entry_timer = setInterval(function() {
+save_portfolio_sampling();
+const history_entry_timer = setInterval(save_portfolio_sampling, 60000);
+
+function save_portfolio_sampling() {
   global.storage.history.add_entry(function(err) {
     if (err) {
       return;
     }
     console.log("saved portfolio history entry to database");
   });
-  
-}, 60000);
+}
 
 // start task to periodically update coins history
 global.storage.coins.persist();

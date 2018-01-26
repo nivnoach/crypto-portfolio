@@ -64,29 +64,15 @@ const CoinSampling = sequelize.define('coin_samplings', {
     }
 );
 
-// force: true will drop the table if it already exists
-/*
-CoinSampling.sync().then(() => {
-    // Table created
-    return CoinSampling.create(    {
-        cid: "bitcoin",  // was: id
-        name: "Bitcoin", 
-        symbol: "BTC", 
-        rank: 1, 
-        price_usd: 11318.3, 
-        price_btc: 1.0, 
-        volume_usd_24י: 9691290000.0,
-        market_cap_usd: 190421478680, 
-        available_supply: 16824212.0, 
-        total_supply: 16824212.0, 
-        max_supply: 21000000.0, 
-        percent_change_1h: 0.37, 
-        percent_change_24h: 1.73, 
-        percent_change_7d: 3.74, 
-        last_updated: 1516830860
-    });
-  });
-*/
+const ProfileSampling = sequelize.define('profile_history', {
+    h_id:           { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+    date:           { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
+    value_usd:      { type: Sequelize.DOUBLE },
+    total_cost:     { type: Sequelize.DOUBLE },
+    profit:         { type: Sequelize.DOUBLE },
+    profit_percent: { type: Sequelize.DOUBLE },
+    source:         { type: Sequelize.STRING },
+});
 
 // fetch coins data source
 var coinsmarketcap = global.coin_data_source;
@@ -101,17 +87,11 @@ var that = module.exports = {
                         return cb(err);
                     }
 
-                    pool.query(
-                        'INSERT INTO profile_history(value_usd, total_cost, profit, profit_percent, source) VALUES(?,?,?,?,?)',
-                        [portfolio.current_value, portfolio.total_cost, portfolio.total_profit, portfolio.total_profit_percent, os.hostname()],
-                        function (err, results, fields) {
-                            if (err) {
-                                console.log('failed adding history point: ' + err)
-                                return cb(err);
-                            }
-                            cb(null);
-                        }
-                    );
+                    ProfileSampling.sync().then(() => {
+                        portfolio.source = os.hostname();
+                        ProfileSampling.create( portfolio )
+                                       .then( function() { cb(null); }, function(err) { cb(err); });
+                    });
                 });
             },
 

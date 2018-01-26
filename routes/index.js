@@ -19,7 +19,6 @@ router.get('/transactions', function(req, res, next) {
 
     return res.render('transactions', { name: 'transactions', transactions: transactions });
   });
-  
 });
 
 router.get('/portfolio', function(req, res, next) {
@@ -46,6 +45,9 @@ router.get('/portfolio', function(req, res, next) {
   
 });
 
+router.get('/whats-new', function(req, res, next) {
+  return res.render('whats-new', { name: 'whats-new' });
+});
 
 
 module.exports = router;

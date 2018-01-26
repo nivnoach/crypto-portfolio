@@ -3,37 +3,40 @@
 {% block head %}
 
   <script src="/javascripts/dygraph.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js" integrity="sha256-c0m8xzX5oOBawsnLVpHnU2ieISOvxi584aNElFl2W6M=" crossorigin="anonymous"></script>
+  <script src="/javascripts/portfolio-charts.js"></script>
   <link rel="stylesheet" type="text/css" href="/stylesheets/dygraph.css" />
-
+  <style>
+    .going_up { color: green }
+    .going_down { color: red }
+  </style>
   <script>
     $(function(){
-        var history = new Dygraph(document.getElementById("history"),
-                    [ {{ history | historyData | join(',') }} ],
-                    {
-                      labels: [ "", "$" ],
-                      showRangeSelector: true,
-                      title: "Portfolio Value (USD)",
-                      digitsAfterDecimal: 2,
-                      drawGrid: true,
-                      animatedZooms: true,
-                      legend: "always"
-                    });
+      // create the time-series chart
+      create_pf_value(
+        [ {{ history | historyData | join(',') }} ],
+        [
+        {% for t in transactions %}
+          {
+            series: '$',
+            x: new Date({{ t.date.getTime() }}),
+            icon: 'images/trash.png',
+            width: 18,
+            height: 23,
+            tickHeight: 4,
+            text: "{{ t.coin_info.name }}<br/>{{ t.amount }}<br/>{{ t.price_usd }}",
+            cssClass: 'annotation'
+          }{% if not loop.last %},{% endif %}
+        {% endfor %}
+        ]
+      );
 
-      // annotate with purchases
-      var annotations = [];
-      {% for t in transactions %}
-        annotations.push( {
-          series: '$',
-          x: new Date({{ t.date.getTime() }}),
-          icon: 'images/trash.png',
-          width: 18,
-          height: 23,
-          tickHeight: 4,
-          text: "{{ t.coin_info.name }}<br/>{{ t.amount }}<br/>{{ t.price_usd }}",
-          cssClass: 'annotation'
-        });                    
-      {% endfor %}
-      history.setAnnotations(annotations);
+      // create the pie chart
+      // TODO: there is an assumption here that each coin was purchaed only once. REFINE!
+      create_pf_distribution(
+        [ {{ transactions | transaction_coin_name | safe }} ],
+        [ {{ transactions | transaction_value | safe }} ]
+      );
     });
   </script>
 {% endblock %}
@@ -49,11 +52,11 @@
       </div>
       <div class="row">
         <div class="col-sm-4">
-          <h3>${{ portfolio.total_cost | round(2) }}</h3>
+          <h3>{{ portfolio.total_cost | round(2) }}$</h3>
           total cost
         </div>
         <div class="col-sm-4">
-          <h3>${{ portfolio.total_profit | round(2) }}</h3>
+          <h3>{{ portfolio.total_profit | round(2) }}$</h3>
           total profit
         </div>
         <div class="col-sm-4">
@@ -67,13 +70,23 @@
 
     <div class="container portfolio_charts">
       <div class="row">
-        <div class="col-sm-6">
-          <!-- <canvas id="history"></canvas> -->
+        <div class="col-sm-12">
           <div id="history" style="width: 100%"></div>
         </div>
+      </div>
+      <div>
         <div class="col-sm-6">
-          <!-- <canvas id="history"></canvas> -->
-          <div id="division" style="width: 100%"></div>
+          <div style="width: 100%; padding-top: 15px;">
+            <canvas id="distribution"></canvas>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div style="width: 100%; padding-top: 15px;">
+            <br/>
+            <br/>
+            Anything you'de like to see here?<br/>
+            <b>LET ME KNOW!</b>
+          </div>
         </div>
       </div>
     </div>
@@ -86,29 +99,29 @@
           <tr>
             <th scope="col"></th>
             <th scope="col" colspan="2">Coin</th>
-            <th scope="col">Price</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Abg. Buy Price</th>
-            <th scope="col">Cost</th>
             <th scope="col">Value</th>
             <th scope="col">Profit</th>
             <th scope="col">Profit %</th>
+            <th scope="col">Curr Price</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Abg. Buy Price</th>
+            <th scope="col">Cost</th>
           </tr>
         </thead>
         <tbody id="coins">
       {% for coin in portfolio.coins %}
 
-        <tr>
+        <tr class="going_{% if (coin.profit > 0) %}up{% else %}down{% endif %}">
           <td>{{ loop.index }}</td>
           <td><img class='coin' src='{{ coin.info.image_link }}' /></td>
           <td>{{ coin.info.name }} ({{coin.info.symbol}})</td>
-          <td>${{ coin.info.price_usd }}</td>
-          <td>{{ coin.amount }}</td>
-          <td>${{ coin.avg_buy_price }}</td>
-          <td>${{ coin.cost | round(2)}}</td>
-          <td>${{ coin.value | round(2) }}</td>
-          <td>${{ coin.profit | round(2) }}</td>
+          <td>{{ coin.value | round(2) }}$</td>
+          <td>{{ coin.profit | round(2) }}$</td>
           <td>{{ coin.profit_percent | round(2) }}%</td>
+          <td>{{ coin.info.price_usd }}$</td>
+          <td>{{ coin.amount }}</td>
+          <td>{{ coin.avg_buy_price }}$</td>
+          <td>{{ coin.cost | round(2)}}$</td>
         </tr>
 
       {% endfor %}
