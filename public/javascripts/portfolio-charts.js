@@ -70,6 +70,13 @@ function create_pf_distribution(coins, values) {
             animation: {
                 animateScale: true,
                 animateRotate: true
+            },
+            tooltips: {
+                padding: "15px",
+                custom: function(tooltipModel) {
+                    tooltipModel.text += "%";
+                    return tooltipModel;
+                }
             }
         }
     });

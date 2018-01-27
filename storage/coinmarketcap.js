@@ -39,7 +39,10 @@ var self = module.exports = {
 
     coin_info: function(symbol_or_id) {
         for (var idx = 0; idx < this._data.length; idx++) {
-            if (this._data[idx].symbol === symbol_or_id || this._data[idx].id === symbol_or_id) {
+            if (this._data[idx].symbol === symbol_or_id ||
+                this._data[idx].id === symbol_or_id ||
+                this._data[idx].cid === symbol_or_id)
+            {
                 return this._data[idx];
             }
         }
