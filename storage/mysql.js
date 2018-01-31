@@ -88,12 +88,26 @@ var that = module.exports = {
                         console.log('failed getting portfolio: ' + err)
                         return cb(err);
                     }
+                    
+                    pool.query(
+                         'INSERT INTO profile_history(value_usd, total_cost, profit, profit_percent, source) VALUES(?,?,?,?,?)',
+                         [portfolio.current_value, portfolio.total_cost, portfolio.total_profit, portfolio.total_profit_percent, os.hostname()],
+                         function (err, results, fields) {
+                             if (err) {
+                                 console.log('failed adding history point: ' + err)
+                                 return cb(err);
+                             }
+                             cb(null);
+                         }
+                     );
 
+/*
                     ProfileSampling.sync().then(() => {
                         portfolio.source = os.hostname();
                         ProfileSampling.create( portfolio )
                                        .then( function() { cb(null); }, function(err) { cb(err); });
                     });
+*/
                 });
             },
 

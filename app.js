@@ -8,7 +8,7 @@ const nunjucks = require('nunjucks');
 
 // is dev?
 global.isDev = !(process.env.env === 'production');
-console.log("environment: " + process.env.env + " ,is dev? " + global.isDve)
+console.log("environment: " + process.env.env + " ,is dev? " + global.isDev)
 
 // add nunjucks filter
 var env = new nunjucks.Environment();
