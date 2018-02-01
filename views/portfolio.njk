@@ -56,7 +56,7 @@
     <div class="container portfolio_summary">
       <div class="row">
         <div class="col-sm-12">
-          <h2>${{ portfolio.current_value | round(2) }}</h2>
+          <h2>${{ portfolio.value_usd | round(2) }}</h2>
           current portfolio value
         </div>
       </div>
@@ -66,11 +66,11 @@
           total cost
         </div>
         <div class="col-sm-4">
-          <h3>{{ portfolio.total_profit | round(2) }}$</h3>
+          <h3>{{ portfolio.profit | round(2) }}$</h3>
           total profit
         </div>
         <div class="col-sm-4">
-          <h3>{{ portfolio.total_profit_percent | round(2) }}%</h3>
+          <h3>{{ portfolio.profit_percent | round(2) }}%</h3>
           total profit
         </div>
       </div>

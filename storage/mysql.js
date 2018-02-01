@@ -89,39 +89,23 @@ var that = module.exports = {
                         return cb(err);
                     }
                     
-                    pool.query(
-                         'INSERT INTO profile_history(value_usd, total_cost, profit, profit_percent, source) VALUES(?,?,?,?,?)',
-                         [portfolio.current_value, portfolio.total_cost, portfolio.total_profit, portfolio.total_profit_percent, os.hostname()],
-                         function (err, results, fields) {
-                             if (err) {
-                                 console.log('failed adding history point: ' + err)
-                                 return cb(err);
-                             }
-                             cb(null);
-                         }
-                     );
-
-/*
                     ProfileSampling.sync().then(() => {
                         portfolio.source = os.hostname();
                         ProfileSampling.create( portfolio )
                                        .then( function() { cb(null); }, function(err) { cb(err); });
                     });
-*/
+
                 });
             },
 
             get: function(cb) {
-                pool.query(
-                    'SELECT * FROM profile_history',
-                    function (err, results, fields) {
-                        if (err) {
-                            console.log('failed getting history: ' + err)
-                            return cb(err);
-                        }
-                        cb(null, results);
-                    }
-                );
+                ProfileSampling.findAndCountAll()
+                .then(results => {
+                    cb(null, results.rows);
+                }).error(err => { 
+                    console.log('failed getting history: ' + err);
+                    return cb(err);
+                 });
             }
         },
 
@@ -237,7 +221,7 @@ var that = module.exports = {
             var result = { 
                 coins: {}, 
                 total_cost: 0,
-                current_value: 0
+                value_usd: 0
             };
 
             if (!cb) return;
@@ -262,11 +246,11 @@ var that = module.exports = {
                         }
                     }
 
-                    result.current_value += (t.amount * +t.coin_info.price_usd);
+                    result.value_usd += (t.amount * +t.coin_info.price_usd);
                 }
 
-                result.total_profit = result.current_value - result.total_cost;
-                result.total_profit_percent = (result.total_profit / result.total_cost) * 100;
+                result.profit = result.value_usd - result.total_cost;
+                result.profit_percent = (result.profit / result.total_cost) * 100;
 
                 /**
                  * coins
