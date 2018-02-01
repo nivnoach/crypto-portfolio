@@ -24,7 +24,7 @@
         {% for t in transactions %}
           {
             series: '$',
-            x: new Date({{ t.date.getTime() }}),
+            x: new Date('{{ t.date }}'),
             icon: 'images/trash.png',
             width: 18,
             height: 23,

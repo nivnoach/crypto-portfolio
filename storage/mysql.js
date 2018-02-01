@@ -7,19 +7,6 @@ const os = require('os');
 
 var mysql_host = "localhost";
 
-/////////////// node.js mysql module
-var mysql = require('mysql');
-
-var dbcfg = {
-    poolSize: 4,
-    host:     mysql_host,
-    user:     'root',
-    password: 'portfolio',
-    database: 'portfolio'
-};
-
-var pool = mysql.createPool(dbcfg);
-
 ////////////// sequalize
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('portfolio', 'root', 'portfolio', {
@@ -74,6 +61,16 @@ const ProfileSampling = sequelize.define('profile_history', {
     profit:         { type: Sequelize.DOUBLE },
     profit_percent: { type: Sequelize.DOUBLE },
     source:         { type: Sequelize.STRING },
+});
+
+const Transaction = sequelize.define('transactions', {
+    t_id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+    coin: { type: Sequelize.STRING },
+    date: { type: Sequelize.DATE },
+    action: { type: Sequelize.STRING },
+    amount: { type: Sequelize.DOUBLE },
+    price_usd: { type: Sequelize.DOUBLE },
+    source: { type: Sequelize.STRING }
 });
 
 // fetch coins data source
@@ -158,24 +155,24 @@ var that = module.exports = {
         transactions: {
             all: function(cb) {
                 // run a query against db
-                pool.query(
-                    'SELECT * FROM transactions',
-                    function (error, results, fields) {
-                        if (!cb) return;
-                        if (error) return cb(error, null);
+                Transaction.findAndCountAll()
+                .then(results => {
+                    results = results.rows;
 
-                        // enrich transactions
-                        for(var t_idx in results) {
-                            var t = results[t_idx];
+                    // enrich transactions
+                    for(var t_idx in results) {
+                        var t = results[t_idx];
 
-                            if (!t.coin_info) {
-                                t.coin_info = coinsmarketcap.coin_info(t.coin);
-                            }
+                        if (!t.coin_info) {
+                            t.coin_info = coinsmarketcap.coin_info(t.coin);
                         }
-                        
-                        return cb(null, results);
                     }
-                );
+
+                    cb(null, results);
+                }).error(err => { 
+                    console.log('failed getting history: ' + err);
+                    return cb(err);
+                });
             },
 
             add: function(t, cb) {
@@ -191,28 +188,26 @@ var that = module.exports = {
                 t.source = os.hostname();
 
                 // run a query against db
-                pool.query(
-                    'INSERT INTO transactions(coin,date,action,amount,price_usd,source) VALUES(?,?,?,?,?,?)',
-                    [t.coin, t.date, t.action, t.amount, t.price_usd, t.source],
-                    function (error, results, fields) {
-                        if (error) return cb(error);
-                        console.log('transaction added');
-                        cb(null);
-                    }
-                );
+                Transaction.sync().then(() => {
+                    Transaction.create( t )
+                                   .then( function() { cb(null); }, function(err) { cb(err); });
+                });
             },
 
             delete: function(t_id, cb) {
                 // run a query against db
-                pool.query(
-                    'DELETE FROM transactions WHERE t_id = ?',
-                    [t_id],
-                    function (error, results, fields) {
-                        if (error) cb(error);
-                        console.log('transaction deleted');
-                        cb(null);
+                Transaction.destroy({
+                    where: {
+                        t_id: t_id
                     }
-                );                
+                })
+                .then( 
+                    function() { 
+                        console.log('transaction deleted');
+                        cb(null); 
+                    }, 
+                    function(err) { cb(err); }
+                );
             }
 
         },
