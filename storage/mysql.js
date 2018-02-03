@@ -140,15 +140,20 @@ var that = module.exports = {
                 }
         
                 console.log("persisting coin info...");
-                coins_data.coins.forEach(function(coin_sampling, index) {
-                    CoinSampling.sync().then(() => {
-                        coin_sampling.cid = coin_sampling.id;
-                        coin_sampling.last_updated = new Date();
-                        delete coin_sampling.id;
-                        console.log("created coin sampling #" + index + " of " + coins_data.coins.length);
-                        return CoinSampling.create( coin_sampling );
-                    });
+
+                // process coins data
+                coins_data.coins = coins_data.coins.map(s => {
+                    s.cid = s.id;
+                    s.last_updated = new Date();
+                    delete s.id;
+                    return s;
                 });
+
+                CoinSampling
+                    .bulkCreate(coins_data.coins)
+                    .then(() => {
+                        console.log("created " + coins_data.coins.length + " coin sampling points");
+                    });
             }
         },
 
