@@ -1,7 +1,7 @@
 
 const os = require('os');
 
-//
+// 
 // Configuration (TODO: move to file)
 //
 
@@ -32,26 +32,6 @@ sequelize
   .catch(err => {
     console.error('Unable to connect to the database:', err);
   });
-
-const CoinSampling = sequelize.define('coin_samplings', {
-        id:            { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
-        cid:           { type: Sequelize.STRING },
-        name:          { type: Sequelize.STRING },
-        symbol:        { type: Sequelize.STRING },
-        rank:          { type: Sequelize.INTEGER },
-        price_usd:     { type: Sequelize.DOUBLE },
-        price_btc:     { type: Sequelize.DOUBLE },
-        vol_usd_24h:   { type: Sequelize.DOUBLE },
-        market_cap_usd:       { type: Sequelize.DOUBLE },
-        avialability_supply:  { type: Sequelize.DOUBLE },
-        total_supply:         { type: Sequelize.DOUBLE },
-        max_supply:           { type: Sequelize.DOUBLE },
-        percent_change_1h:    { type: Sequelize.DOUBLE },
-        percent_change_24h:   { type: Sequelize.DOUBLE },
-        percent_change_7d:    { type: Sequelize.DOUBLE },
-        last_updated:         { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
-    }
-);
 
 const ProfileSampling = sequelize.define('profile_history', {
     h_id:           { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
@@ -132,28 +112,6 @@ var that = module.exports = {
                     }
                 }
                 cb(null, result);
-            },
-
-            persist: function(coins_data) {
-                if (!coins_data) {
-                    coins_data = coinsmarketcap.get();
-                }
-        
-                console.log("persisting coin info...");
-
-                // process coins data
-                coins_data.coins = coins_data.coins.map(s => {
-                    s.cid = s.id;
-                    s.last_updated = new Date();
-                    delete s.id;
-                    return s;
-                });
-
-                CoinSampling
-                    .bulkCreate(coins_data.coins)
-                    .then(() => {
-                        console.log("created " + coins_data.coins.length + " coin sampling points");
-                    });
             }
         },
 

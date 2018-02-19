@@ -144,8 +144,4 @@ function save_portfolio_sampling() {
   });
 }
 
-// start task to periodically update coins history
-global.storage.coins.persist();
-const coins_history_timer = setInterval(global.storage.coins.persist, 5 * 60000);
-
 module.exports = app;
