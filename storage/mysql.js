@@ -41,7 +41,7 @@ const ProfileSampling = sequelize.define('profile_history', {
     profit:         { type: Sequelize.DOUBLE },
     profit_percent: { type: Sequelize.DOUBLE },
     source:         { type: Sequelize.STRING },
-});
+}, { freezeTableName: true });
 
 const Transaction = sequelize.define('transactions', {
     t_id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
