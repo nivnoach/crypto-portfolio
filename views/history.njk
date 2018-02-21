@@ -1,0 +1,49 @@
+{% extends "./_layout.njk" %}
+
+{% block head %}
+
+  <script src="/javascripts/dygraph.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js" integrity="sha256-c0m8xzX5oOBawsnLVpHnU2ieISOvxi584aNElFl2W6M=" crossorigin="anonymous"></script>
+  <script src="/javascripts/portfolio-charts.js"></script>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/dygraph.css" />
+
+  <style>
+    .going_up { color: green }
+    .going_down { color: red }
+  </style>
+  <script>
+    $(function(){
+      $.ajax('/data/history', {
+        success: function(history) {
+              // create the time-series chart
+              create_pf_value(
+                to_pf_chart_points(history),
+                [
+                {% for t in transactions %}
+                  {
+                    series: '$',
+                    x: new Date('{{ t.date }}'),
+                    icon: 'images/trash.png',
+                    width: 18,
+                    height: 23,
+                    tickHeight: 4,
+                    text: "{{ t.coin_info.name }}<br/>{{ t.amount }}<br/>{{ t.price_usd }}",
+                    cssClass: 'annotation'
+                  }{% if not loop.last %},{% endif %}
+                {% endfor %}
+                ]
+              );
+        }
+      })
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+  <div style="padding: 10px">
+    <div id="history" style="width: 100%">
+      <h2>Loading history...</h2>
+      <h3>This may take a while...</h3>
+    </div>
+  </div>
+{% endblock %}

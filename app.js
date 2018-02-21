@@ -41,22 +41,14 @@ env.addFilter('transaction_value', function(value) {
   return value.map(function(t) { return t.amount * t.price_usd; });
 });
 
-env.addFilter('historyData', function(history) {
-  function compare(h1, h2) {
-    if (h1.date > h2.date) return 1;
-    if (h1.date < h2.date) return -1;
-    return 0;
-  }
-
-  history.sort(compare);
-
+env.addFilter('nthElement', function(arr, n) {
   var result = [];
-  for(var h_idx in history) {
-    var d = history[h_idx].date;
-    result.push("[ new Date(" + d.getTime() + "), " + history[h_idx].value_usd + " ]");
-  }
+  for (var i = 0; i < arr.length; i++) 
+    if (i%n === 0)
+      result.push(arr[i]);
   return result;
 });
+
 
 env.addFilter('portfolioDivision', function(portfolio) {
   var result = [];

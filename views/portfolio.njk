@@ -17,24 +17,28 @@
   </style>
   <script>
     $(function(){
-      // create the time-series chart
-      create_pf_value(
-        [ {{ history | historyData | join(',') }} ],
-        [
-        {% for t in transactions %}
-          {
-            series: '$',
-            x: new Date('{{ t.date }}'),
-            icon: 'images/trash.png',
-            width: 18,
-            height: 23,
-            tickHeight: 4,
-            text: "{{ t.coin_info.name }}<br/>{{ t.amount }}<br/>{{ t.price_usd }}",
-            cssClass: 'annotation'
-          }{% if not loop.last %},{% endif %}
-        {% endfor %}
-        ]
-      );
+      $.ajax('/data/history?count=1440', {
+        success: function(history) {
+              // create the time-series chart
+              create_pf_value(
+                to_pf_chart_points(history),
+                [
+                {% for t in transactions %}
+                  {
+                    series: '$',
+                    x: new Date('{{ t.date }}'),
+                    icon: 'images/trash.png',
+                    width: 18,
+                    height: 23,
+                    tickHeight: 4,
+                    text: "{{ t.coin_info.name }}<br/>{{ t.amount }}<br/>{{ t.price_usd }}",
+                    cssClass: 'annotation'
+                  }{% if not loop.last %},{% endif %}
+                {% endfor %}
+                ]
+              );
+        }
+      })
 
       // create the pie chart
       // TODO: there is an assumption here that each coin was purchaed only once. REFINE!
@@ -79,23 +83,15 @@
     <br/> 
 
     <div class="container portfolio_charts">
-      <div class="row">
-        <div class="col-sm-12">
-          <div id="history" style="width: 100%"></div>
-        </div>
-      </div>
       <div>
         <div class="col-sm-6">
           <div style="width: 100%; padding-top: 15px;">
-            <canvas id="distribution"></canvas>
+            <canvas id="distribution" height="250px"></canvas>
           </div>
         </div>
         <div class="col-sm-6">
           <div style="width: 100%; padding-top: 15px;">
-            <br/>
-            <br/>
-            Anything you'de like to see here?<br/>
-            <b>LET ME KNOW!</b>
+            <div id="history" style="width: 100%">Loading recent time...</div>
           </div>
         </div>
       </div>

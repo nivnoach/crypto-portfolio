@@ -11,6 +11,10 @@ router.get('/coins', function(req, res, next) {
   res.render('coins', { name: 'coins' });
 });
 
+router.get('/history', function(req, res, next) {
+  res.render('history', { name: 'history' });
+});
+
 router.get('/transactions', function(req, res, next) {
   global.storage.transactions.all(function(err, transactions) {
     if (err) {
@@ -27,20 +31,22 @@ router.get('/portfolio', function(req, res, next) {
     if (err) {
       return res.status(500).send(err);
     }
-
+/*
     // get history
-    global.storage.history.get(function(err, history) {
+    global.storage.history.get(2880, function(err, history) {
       if (err) {
         return res.status(500).send(err);
       }
-  
+*/  
       global.storage.transactions.all(function(err, transactions) {
         if (err) {
           return res.status(500).send(err);
         }
-        res.render('portfolio', { name: 'portfolio', portfolio: portfolio, history: history, transactions: transactions });
+        res.render('portfolio', { name: 'portfolio', portfolio: portfolio, /*history: history,*/ transactions: transactions });
       });
+/*      
     });
+*/    
   })
   
 });

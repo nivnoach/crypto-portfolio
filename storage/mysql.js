@@ -1,11 +1,12 @@
 
 const os = require('os');
+const moment = require('moment');
 
 // 
 // Configuration (TODO: move to file)
 //
 
-var mysql_host = "localhost";
+var mysql_host = "portfolio.cacqb8j4mjia.us-west-2.rds.amazonaws.com";
 
 ////////////// sequalize
 const Sequelize = require('sequelize');
@@ -75,10 +76,15 @@ var that = module.exports = {
                 });
             },
 
-            get: function(cb) {
-                ProfileSampling.findAndCountAll()
+            get: function(count, cb) {
+                var opts = (!count) ? {} : {
+                    order: sequelize.literal('createdAt DESC'),
+                    limit: count
+                };
+
+                ProfileSampling.findAll(opts)
                 .then(results => {
-                    cb(null, results.rows);
+                    cb(null, results);
                 }).error(err => { 
                     console.log('failed getting history: ' + err);
                     return cb(err);
@@ -172,7 +178,6 @@ var that = module.exports = {
                     function(err) { cb(err); }
                 );
             }
-
         },
 
         portfolio: function(cb) {

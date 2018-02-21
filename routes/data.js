@@ -25,7 +25,7 @@ router.get('/portfolio', function(req, res, next) {
 });
 
 router.get('/history', function(req, res, next) {
-  global.storage.history.get(function(err, history) {
+  global.storage.history.get(+req.query.count, function(err, history) {
     if(err) {
       return res.status(500).send(err);
     }
