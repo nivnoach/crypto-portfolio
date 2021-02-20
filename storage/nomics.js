@@ -1,6 +1,8 @@
 const request = require('request');
 const jsonfile = require('jsonfile');
 const fs = require('fs');
+const { _portfolio, _nomics_api_key } = require('./config');
+const { SSL_OP_EPHEMERAL_RSA } = require('constants');
 
 const cachefile = 'coins.cache.json';
 
@@ -15,15 +17,17 @@ if(fs.existsSync(cachefile))
 var self = module.exports = {
     // last date data was updated
     _last_updated: new Date(0),
-    
+
     // array of coins
     _data: _cached_data,
 
+    _cb: [],
+
     name: function() {
-        return "coinmarketcap.com";
+        return "nomics";
     },
 
-    // returns 
+    // returns
     get: function(start, limit) {
         start = +start ? +start : 0;
         limit = +limit ? +limit : this._data.length;
@@ -49,14 +53,23 @@ var self = module.exports = {
         return null;
     },
 
+    register_for_updates: function(cb) {
+        this._cb = this._cb ? this._cb : [];
+        this._cb.push(cb);
+    },
+
     refresh: function() {
-        console.log("requesting coins info from coinmarketcap.com...")
+        console.log("requesting coins info from nomics")
+        var ids = _portfolio.map(p => p.code).reduce((a, b) => a + "," + b, 0);
+
         request(
-            "https://api.coinmarketcap.com/v1/ticker/?limit=9999",
+            "https://api.nomics.com/v1/currencies/ticker?key=" + _nomics_api_key + "&ids=" +
+            ids +
+            "&interval=1d,30d&convert=USD&per-page=100&page=1",
             { json: true },
             function(err, res, body) {
                 // set timer again
-                refreshTimer = setTimeout(module.exports.refresh, 10000);
+                refreshTimer = setTimeout(module.exports.refresh, 60 * 60 * 1000 /* every hour */);
 
                 // handle errors
                 if(err) {
@@ -75,9 +88,15 @@ var self = module.exports = {
 
                 // update image link
                 for(var idx = 0; idx < self._data.length; idx++) {
-                    self._data[idx].image_link = 'https://files.coinmarketcap.com/static/img/coins/64x64/' + self._data[idx].id + '.png';
+                    self._data[idx].image_link = self._data[idx].logo_url;
                 }
-                
+
+                // call all registered callbacks
+                if (self._cb) {
+                    console.log("calling " + self._cb.length + " registered callbacks");
+                    self._cb.forEach(cb => cb());
+                }
+
                 // update L2 cache (file)
                 fs.stat(cachefile, function(err, stats)  {
                     if (!err) {
@@ -88,12 +107,12 @@ var self = module.exports = {
                     }
 
                     jsonfile.writeFileSync(cachefile, self._data);
-                    console.log("successfully updated coins rates from coinmarketcap");
-            });
+                    console.log("successfully updated coins rates from nomics");
+                });
             }
         );
     }
 };
 
 // refresh and start time
-var refreshTimer = setTimeout(module.exports.refresh, 10000);
+var refreshTimer = setTimeout(module.exports.refresh, 1000);

@@ -43,7 +43,7 @@ env.addFilter('transaction_value', function(value) {
 
 env.addFilter('nthElement', function(arr, n) {
   var result = [];
-  for (var i = 0; i < arr.length; i++) 
+  for (var i = 0; i < arr.length; i++)
     if (i%n === 0)
       result.push(arr[i]);
   return result;
@@ -62,14 +62,17 @@ env.addFilter('portfolioDivision', function(portfolio) {
 
 const expressNunjucks = require('express-nunjucks');
 
-// routes 
+// routes
 var index = require('./routes/index');
-var data = require('./routes/data');
 
 // data sources and database
 // NOT: mysql depends on coinmarketcap, so must be loaded after it.
-global.coin_data_source = require('./storage/coinmarketcap');
-global.storage = require('./storage/mysql');
+//global.coin_data_source = require('./storage/coinmarketcap');
+// global.storage = require('./storage/mysql');
+
+// use static storage for simplicity
+global.coin_data_source = require('./storage/nomics');
+global.storage = require('./storage/datapi');
 
 // create the app
 var app = express();
@@ -102,7 +105,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/data', data);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -122,18 +124,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-// start task to periodically save portfolio history point
-save_portfolio_sampling();
-const history_entry_timer = setInterval(save_portfolio_sampling, 60000);
-
-function save_portfolio_sampling() {
-  global.storage.history.add_entry(function(err) {
-    if (err) {
-      return;
-    }
-    console.log("saved portfolio history entry to database");
-  });
-}
 
 module.exports = app;
