@@ -9,7 +9,7 @@
     "body-parser": "~1.18.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-nunjucks": "^2.2.3",
     "jade": "^0.29.0",
     "jsonfile": "^4.0.0",
